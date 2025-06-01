@@ -8,6 +8,7 @@ class TextEditor(QMainWindow):
 
         # QScintilla のエディタを作成
         self.editor = QsciScintilla()
+        self.editor.linesChanged.connect(self.adjust_margin_width)
         self.setCentralWidget(self.editor)
 
         # メニューの追加
@@ -65,15 +66,19 @@ class TextEditor(QMainWindow):
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(self.editor.text())
 
-    def toggle_line_numbers(self):
-        if self.editor.marginWidth(0) == 0:
-            # self.editor.setMarginWidth(0, 40)
+    def adjust_margin_width(self):
+        if self.editor.marginWidth(0) != 0:
             line_count = self.editor.lines()
             digit_count = len(str(line_count))
             font_metrics = QFontMetrics(self.editor.font())
             char_width = font_metrics.horizontalAdvance("0")
             margin_width = char_width * (digit_count + 2)
             self.editor.setMarginWidth(0, margin_width)
+
+    def toggle_line_numbers(self):
+        if self.editor.marginWidth(0) == 0:
+            self.editor.setMarginWidth(0, 40)
+            self.adjust_margin_width()
         else:
             self.editor.setMarginWidth(0, 0)
 
@@ -82,6 +87,7 @@ class TextEditor(QMainWindow):
         font, ok = QFontDialog.getFont(current_font, self)
         if ok:
             self.editor.setFont(font)
+            self.adjust_margin_width()
 
 # アプリケーションの実行
 app = QApplication([])
