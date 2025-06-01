@@ -11,10 +11,14 @@ class TextEditor(QMainWindow):
         self.editor.linesChanged.connect(self.adjust_margin_width)
         self.setCentralWidget(self.editor)
 
-        lexer = QsciLexerPython()
-        lexer.setDefaultPaper(QColor("#2E2E2E"))  # **背景色を変更**
-        lexer.setDefaultColor(QColor("#FFFFFF"))  # **テキストの色を変更**
-        self.editor.setLexer(lexer)
+        self.lexer = QsciLexerPython()
+        self.lexer.setDefaultPaper(QColor("#2E2E2E"))  # **背景色を変更**
+        self.lexer.setDefaultColor(QColor("#FFFFFF"))  # **テキストの色を変更**
+        self.editor.setLexer(self.lexer)
+        self.editor.SendScintilla(QsciScintilla.SCI_STYLESETFORE, QsciScintilla.STYLE_LINENUMBER, 0xFFFFFF)
+        self.editor.SendScintilla(QsciScintilla.SCI_STYLESETBACK, QsciScintilla.STYLE_LINENUMBER, 0x3C3C3C)
+
+        self.font = self.editor.font()
 
         # メニューの追加
         self.create_menu()
@@ -53,9 +57,6 @@ class TextEditor(QMainWindow):
         toggle_line_numbers_action.triggered.connect(self.toggle_line_numbers)
         view_menu.addAction(toggle_line_numbers_action)
 
-        self.editor.SendScintilla(QsciScintilla.SCI_STYLESETFORE, QsciScintilla.STYLE_LINENUMBER, 0xFFFFFF)
-        self.editor.SendScintilla(QsciScintilla.SCI_STYLESETBACK, QsciScintilla.STYLE_LINENUMBER, 0x3C3C3C)
-
         # **フォント変更を追加**
         font_action = QAction("フォント(&F)", self)
         font_action.triggered.connect(self.change_font)
@@ -91,11 +92,13 @@ class TextEditor(QMainWindow):
             self.editor.setMarginWidth(0, 0)
 
     def change_font(self):
-        current_font = self.editor.font()
-        font, ok = QFontDialog.getFont(current_font, self)
+        self.font, ok = QFontDialog.getFont(self.font, self)
         if ok:
-            self.editor.setFont(font)
+            self.lexer.setFont(self.font)
+            self.editor.setLexer(self.lexer)
             self.adjust_margin_width()
+            self.editor.SendScintilla(QsciScintilla.SCI_STYLESETFORE, QsciScintilla.STYLE_LINENUMBER, 0xFFFFFF)
+            self.editor.SendScintilla(QsciScintilla.SCI_STYLESETBACK, QsciScintilla.STYLE_LINENUMBER, 0x3C3C3C)
 
 # アプリケーションの実行
 app = QApplication([])
